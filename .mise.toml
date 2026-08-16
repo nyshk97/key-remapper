@@ -1,14 +1,14 @@
 [tasks.gen]
-description = "XcodeGen で .xcodeproj を生成する"
-run = "xcodegen generate"
+description = "署名用xcconfigを生成してXcodeGenで.xcodeprojを生成する"
+run = "bash scripts/gen-signing-xcconfig.sh && xcodegen generate"
 
 [tasks.build]
 description = "Debug (dev) ビルドする"
-run = "xcodegen generate && xcodebuild -project keyrc.xcodeproj -scheme keyrc -configuration Debug -derivedDataPath build build"
+run = "mise run gen && xcodebuild -project keyrc.xcodeproj -scheme keyrc -configuration Debug -derivedDataPath build build"
 
 [tasks.build-release]
 description = "Release ビルドする（Developer ID 署名 + Hardened Runtime）"
-run = "xcodegen generate && xcodebuild -project keyrc.xcodeproj -scheme keyrc -configuration Release -derivedDataPath build build"
+run = "mise run gen && xcodebuild -project keyrc.xcodeproj -scheme keyrc -configuration Release -derivedDataPath build build"
 
 [tasks.run]
 description = "dev ビルドして起動する（既存の dev プロセスは終了してから）"
