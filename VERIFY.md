@@ -36,10 +36,15 @@ tail /tmp/key-remapper.log
 - 左⌘単押し → 英数、右⌘単押し → かな に切り替わること
 - `⌘C` / `⌘クリック` / `⌘スクロール` で誤発火しないこと
 
-## 全解除・復元（M0 検証期間中）
+## 全解除・フォールバック
+
+Karabiner は 2026-08-16 にアンインストール済み（復帰先は無い）。
 
 ```bash
 ./scripts/uninstall-launchagent.sh                # LaunchAgent 撤去 + hidutil クリア
-'/Library/Application Support/org.pqrs/Karabiner-Elements/bin/karabiner_cli' \
-  --select-profile 'Default profile'              # Karabiner の元設定に復帰
+pkill -x KeyRemapper                              # Layer 2 停止
 ```
+
+KeyRemapper が不調な場合の応急フォールバック:
+- ⌘単押し: `open -g /Applications/⌘英かな.app`（cmd-eikana。M4 完了まで温存）
+- 記号スワップ: `./scripts/key-remapper-apply` を手動実行（アプリなしでも hidutil は効く）

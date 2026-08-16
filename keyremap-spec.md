@@ -435,6 +435,8 @@ case .tapDisabledByTimeout, .tapDisabledByUserInput:
 - Karabiner を完全にアンインストールして常用
 - 不具合の記録と修正
 
+> **進捗 (2026-08-16):** Karabiner のアンインストールを前倒しで完了（公式 uninstall.sh。dmg インストールだったため Brewfile 変更は不要）。仮想キーボードが HID から消え、イベント経路は「内蔵キーボード → hidutil → CGEventTap」の素の構成になった。root 所有の残存プロセスと system extension は次回再起動で消える。setup-dotfiles.sh から karabiner の symlink 定義を除去（`~/.config/karabiner/` と Dropbox 内の設定実体は履歴として残置）。cmd-eikana は応急フォールバックとして M4 完了まで /Applications に温存。
+
 ### M5: 公開（任意）
 
 - README、Homebrew Cask、リリース
