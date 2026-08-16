@@ -12,24 +12,38 @@ hidutil property --get UserKeyMapping | grep -c HIDKeyboardModifierMappingSrc
 **注意: `--get` はプロパティを見ているだけで実効性を保証しない**（プロパティが載っていても効いていない事例あり）。
 最終判定は必ず打鍵で行う: `-` で `'`、`;` で改行、Return で `;` が出れば OK。
 
-### LaunchAgent の適用フロー（end-to-end）
-
-**「クリア → 即時再適用」は hidutil が実効しなくなることがある（実測）。クリア後は必ず数秒空ける。**
-
-```bash
-hidutil property --set '{"UserKeyMapping":[]}'   # 一旦クリア
-sleep 3                                           # 即時再適用を避ける（必須）
-./scripts/install-launchagent.sh                  # RunAtLoad で再適用される
-launchctl print "gui/$(id -u)/io.github.nyshk97.key-remapper.hidutil" | grep 'last exit'  # → 0
-# 最後に必ず打鍵確認（上記）
-```
-
 ### アプリ起動時・スリープ復帰時の Layer 1 適用
 
+**「クリア → 即時再適用」は hidutil が実効しなくなることがある（実測）。クリアを挟む検証は必ず数秒空ける。**
+
 ```bash
-tail /tmp/key-remapper.log
+tail /tmp/key-remapper.log        # 本番（/Applications）
+tail /tmp/key-remapper-dev.log    # dev ビルド
 # 起動直後・wake 直後に "hidutil: applied 4 mappings (exit 0)" が出ていれば OK
 ```
+
+## メニューバー UI
+
+System Events で自動操作できる（status item は **menu bar 1**。LSUIElement アプリなので menu bar 2 ではない点に注意）:
+
+```bash
+osascript <<'EOF'
+tell application "System Events"
+  tell process "KeyRemapper"  # dev は "KeyRemapper Dev"
+    click menu bar item 1 of menu bar 1
+    delay 0.3
+    click menu item "一時停止" of menu 1 of menu bar item 1 of menu bar 1
+  end tell
+end tell
+EOF
+# ログで "paused" + "hidutil: cleared (paused)" を確認。「再開」「設定を再読み込み」も同様
+```
+
+## dev と本番の併存
+
+- 本番: `/Applications/KeyRemapper.app`（`io.github.nyshk97.key-remapper` / Developer ID 署名 / SMAppService でログイン起動）
+- dev: `mise run run` で起動（`io.github.nyshk97.key-remapper.dev` / Apple Development 署名 / ログイン起動なし）
+- TCC は別枠。dev で Layer 2 を検証するときはメニューから本番を「一時停止」する（hidutil は同値上書きなので併存可）
 
 ## Layer 2 (⌘単押し)
 

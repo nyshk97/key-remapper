@@ -430,6 +430,13 @@ case .tapDisabledByTimeout, .tapDisabledByUserInput:
 - 設定ファイルのローダとバリデーション
 - 署名・notarization・Sparkle 組み込み
 
+> **進捗 (2026-08-16):** Sparkle・notarization・Homebrew Cask を除き完了。実装内容:
+> - dev/本番の Bundle ID 分離（Debug = `io.github.nyshk97.key-remapper.dev`「KeyRemapper Dev」/ Apple Development 署名、Release = `io.github.nyshk97.key-remapper` / Developer ID + Hardened Runtime + timestamp）。TCC が独立し併存可能
+> - メニューバー UI（状態表示・一時停止/再開・再読み込み・設定を開く・ログイン時に起動・終了）。一時停止は FR-5.4 通り両層を無効化し、再開時は「クリア後 3 秒」の安全マージンを挟んで hidutil を再適用
+> - 設定ローダ（remaps / tap_actions / tap_threshold_ms、キー名バリデーション付き）。読み込み失敗時は直前の設定を維持し hidutil に触らない
+> - ログイン項目は SMAppService（本番のみ初回起動時に自動登録。未登録時の status は `.notRegistered` でなく `.notFound` が返ることがある点に注意）。手製ログイン項目と暫定 LaunchAgent は撤去済み
+> - Release ビルドを `/Applications` に配置し常用へ切り替え。残タスク: Sparkle 組み込み、notarization、Homebrew Cask（次フェーズ）
+
 ### M4: ドッグフーディング（2週間）
 
 - Karabiner を完全にアンインストールして常用

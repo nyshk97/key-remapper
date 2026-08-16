@@ -3,19 +3,38 @@ description = "XcodeGen で .xcodeproj を生成する"
 run = "xcodegen generate"
 
 [tasks.build]
-description = "Debug ビルドする"
+description = "Debug (dev) ビルドする"
 run = "xcodegen generate && xcodebuild -project KeyRemapper.xcodeproj -scheme KeyRemapper -configuration Debug -derivedDataPath build build"
 
+[tasks.build-release]
+description = "Release ビルドする（Developer ID 署名 + Hardened Runtime）"
+run = "xcodegen generate && xcodebuild -project KeyRemapper.xcodeproj -scheme KeyRemapper -configuration Release -derivedDataPath build build"
+
 [tasks.run]
-description = "Debug ビルドして起動する（既存プロセスは終了してから）"
+description = "dev ビルドして起動する（既存の dev プロセスは終了してから）"
 run = """
 set -e
 mise run build
+pkill -x 'KeyRemapper Dev' 2>/dev/null || true
+sleep 1
+open -g 'build/Build/Products/Debug/KeyRemapper Dev.app'
+"""
+
+[tasks.install]
+description = "Release ビルドを /Applications に配置して起動し直す"
+run = """
+set -e
+mise run build-release
 pkill -x KeyRemapper 2>/dev/null || true
 sleep 1
-open -g build/Build/Products/Debug/KeyRemapper.app
+ditto 'build/Build/Products/Release/KeyRemapper.app' /Applications/KeyRemapper.app
+open -g /Applications/KeyRemapper.app
 """
 
 [tasks.log]
-description = "アプリのログを follow する"
+description = "dev ビルドのログを follow する"
+run = "tail -f /tmp/key-remapper-dev.log"
+
+[tasks.log-prod]
+description = "本番アプリのログを follow する"
 run = "tail -f /tmp/key-remapper.log"

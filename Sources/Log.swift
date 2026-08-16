@@ -2,7 +2,12 @@ import Foundation
 
 /// open 経由の起動では stdout を捕捉できないため、ファイルに追記する
 enum Log {
+    #if DEBUG
+    static let path = "/tmp/key-remapper-dev.log"
+    #else
     static let path = "/tmp/key-remapper.log"
+    #endif
+
     private static let formatter: DateFormatter = {
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"

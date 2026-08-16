@@ -3,7 +3,13 @@ import CoreGraphics
 
 /// ⌘単押し検出の状態機械と CGEventTap の管理（keyremap-spec.md §6.2）
 final class TapController {
-    enum Side: String { case left, right }
+    enum Side: String {
+        case left, right
+
+        var configSide: Config.TapSide {
+            self == .left ? .leftCommand : .rightCommand
+        }
+    }
 
     private enum State {
         case idle
@@ -14,8 +20,6 @@ final class TapController {
     // virtual keycode (kVK_)
     private static let leftCommandKeycode: Int64 = 0x37
     private static let rightCommandKeycode: Int64 = 0x36
-    private static let eisuKeycode: CGKeyCode = 0x66
-    private static let kanaKeycode: CGKeyCode = 0x68
 
     // device-dependent modifier mask (NX_)
     private static let deviceLeftCommandMask: UInt64 = 0x00000008
@@ -24,8 +28,13 @@ final class TapController {
     /// 自分が post したイベントの再入判別マーカー ("KRMP")
     private static let selfEventMarker: Int64 = 0x4B52_4D50
 
-    /// 単押し判定の閾値。M3 で設定ファイルから読む
+    /// 単押し判定の閾値（設定ファイルの tap_threshold_ms）
     var tapThresholdMs: Double = 400
+
+    /// 各サイドの単押しアクション（設定ファイルの tap_actions）
+    var tapActions: [Config.TapSide: Config.TapAction] = [.leftCommand: .eisu, .rightCommand: .kana]
+
+    var isRunning: Bool { eventTap != nil }
 
     private var state: State = .idle
     private var eventTap: CFMachPort?
@@ -75,6 +84,14 @@ final class TapController {
         CGEvent.tapEnable(tap: tap, enable: true)
         Log.write("tap: started")
         return true
+    }
+
+    /// 一時停止/再開（FR-5.4）。停止中はイベントが素通しになる
+    func setEnabled(_ enabled: Bool) {
+        guard let tap = eventTap else { return }
+        CGEvent.tapEnable(tap: tap, enable: enabled)
+        state = .idle
+        Log.write("tap: \(enabled ? "enabled" : "disabled") by user")
     }
 
     /// スリープ復帰等で tap が死んでいないか検証し、必要なら復旧する
@@ -166,9 +183,13 @@ final class TapController {
     // MARK: - Key posting
 
     private func fire(_ side: Side) {
-        let key = side == .left ? Self.eisuKeycode : Self.kanaKeycode
-        Log.write("fire: \(side.rawValue) -> \(side == .left ? "eisu" : "kana")")
+        guard let action = tapActions[side.configSide] else {
+            Log.write("fire: \(side.rawValue) has no action, skipped")
+            return
+        }
+        Log.write("fire: \(side.rawValue) -> \(action.rawValue)")
         // ⌘ up イベントが下流に届いてから post されるよう、callback の外で実行する
+        let key = action.keyCode
         DispatchQueue.main.async { [weak self] in
             self?.postKey(key)
         }
