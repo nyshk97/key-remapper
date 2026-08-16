@@ -60,5 +60,5 @@ pkill -x KeyRemapper                              # Layer 2 停止
 ```
 
 KeyRemapper が不調な場合の応急フォールバック:
-- ⌘単押し: `open -g /Applications/⌘英かな.app`（cmd-eikana。M4 完了まで温存）
+- ⌘単押し: cmd-eikana は 2026-08-16 に削除済み。必要なら dominion525/cmd-eikana の配布バイナリ（署名・公証済み）を再導入する
 - 記号スワップ: `./scripts/key-remapper-apply` を手動実行（アプリなしでも hidutil は効く）
