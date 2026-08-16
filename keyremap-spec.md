@@ -450,6 +450,34 @@ case .tapDisabledByTimeout, .tapDisabledByUserInput:
 
 ---
 
+## 8.5 残作業チェックリスト（2026-08-16 時点の現在地）
+
+M0〜M2 完了、M3 はアプリ実装まで完了・配布まわりが未了、M4 進行中。
+
+### M3 残り（配布まわり）
+
+- [ ] Sparkle 組み込み（SwiftPM 依存追加、EdDSA 鍵生成、SUFeedURL 設定）
+- [ ] notarization（**ユーザーの Terminal で `notarytool` 実行が必要**。資格情報が data-protection keychain にあり Claude Code の Bash から届かないため）
+- [ ] GitHub Release v0.1.0（`ditto -c -k --sequesterRsrc --keepParent` で zip 化 + appcast.xml）
+- [ ] Homebrew Cask（`nyshk97/homebrew-tap` リポジトリ作成 + cask 定義）
+- [ ] Brewfile に cask を追記（新 Mac セットアップ動線の完成）
+
+### M4 残り（ドッグフーディング、〜2026-08-30 目安）
+
+- [ ] 再起動時のブート永続チェーン検証（ログイン項目 → hidutil 適用 → tap 起動。まだ一度も再起動していない）
+- [ ] `tap_threshold_ms: 400` の体感確認（旧 Karabiner は実質 1 秒だった）
+- [ ] 誤発火・「実は使っていた Karabiner 機能」の洗い出し
+- [ ] 問題なければ cmd-eikana（応急フォールバック）を /Applications から削除
+
+### 積み残し（優先度低・時期未定）
+
+- [ ] FR-4 デバイス matching の実測（内蔵キーボードの keyboard service は VID/PID とも 0x0 で matching 手段未確定。Corne を接続するタイミングで検証）
+- [ ] `devices.include_builtin_only` の実装（↑の結果待ち。現状は全デバイス適用）
+- [ ] 外付けキーボード接続時の自動再適用（IOKit device matching notification。v1.1）
+- [ ] M5 公開判断（README 整備・周知。M4 通過後に判断）
+
+---
+
 ## 9. リスクと制約
 
 | リスク | 影響 | 対策 |
