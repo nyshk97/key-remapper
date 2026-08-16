@@ -2,11 +2,24 @@ import AppKit
 import ApplicationServices
 import Carbon
 import ServiceManagement
+#if !DEBUG
+import Sparkle
+#endif
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let tapController = TapController()
     private var menuBarController: MenuBarController?
     private var permissionPollTimer: Timer?
+
+    #if !DEBUG
+    // Sparkle 自動アップデート（dev ビルドは対象外）
+    private let updaterController = SPUStandardUpdaterController(
+        startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+
+    func checkForUpdates() {
+        updaterController.checkForUpdates(nil)
+    }
+    #endif
 
     private(set) var config: Config = .fallback
     private(set) var configErrorDescription: String?

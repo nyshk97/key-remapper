@@ -49,6 +49,12 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         versionItem.isEnabled = false
         menu.addItem(versionItem)
 
+        #if !DEBUG
+        let updateItem = NSMenuItem(title: "アップデートを確認…", action: #selector(checkForUpdates(_:)), keyEquivalent: "")
+        updateItem.target = self
+        menu.addItem(updateItem)
+        #endif
+
         let quitItem = NSMenuItem(title: "終了", action: #selector(quit(_:)), keyEquivalent: "q")
         quitItem.target = self
         menu.addItem(quitItem)
@@ -104,6 +110,12 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         }
         refresh()
     }
+
+    #if !DEBUG
+    @objc private func checkForUpdates(_ sender: Any?) {
+        app.checkForUpdates()
+    }
+    #endif
 
     @objc private func quit(_ sender: Any?) {
         NSApp.terminate(nil)

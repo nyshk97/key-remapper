@@ -2,6 +2,10 @@ name: keyrc
 options:
   deploymentTarget:
     macOS: "13.0"
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: 2.6.0
 settings:
   base:
     SWIFT_VERSION: "5.0"
@@ -14,6 +18,8 @@ targets:
     platform: macOS
     sources:
       - Sources
+    dependencies:
+      - package: Sparkle
     settings:
       base:
         CODE_SIGN_STYLE: Manual
@@ -38,8 +44,16 @@ targets:
       path: Sources/Info.plist
       properties:
         CFBundleDisplayName: $(PRODUCT_NAME)
+        # Sparkle は CFBundleVersion で新旧比較する。MARKETING_VERSION に連動させ bump 忘れを防ぐ
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSUIElement: true
         NSPrincipalClass: NSApplication
+        # Sparkle（アップデータの起動自体は #if !DEBUG でガードしているため dev では無効）
+        SUFeedURL: https://github.com/nyshk97/keyrc/releases/latest/download/appcast.xml
+        SUEnableAutomaticChecks: true
+        # ログイン keychain の "Private key for signing Sparkle updates"（デフォルトアカウント ed25519）と対
+        SUPublicEDKey: VnvTM72yjjc1FY/nzLI5uT/3mSxkOdG7k4dJqAPgZo8=
 schemes:
   keyrc:
     build:
