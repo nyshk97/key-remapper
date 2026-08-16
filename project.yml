@@ -24,6 +24,7 @@ targets:
       base:
         CODE_SIGN_STYLE: Manual
         DEVELOPMENT_TEAM: U4WAHGGBR7
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
       configs:
         # dev と本番は Bundle ID を分離する（TCC 権限が独立し、併存しても衝突しない）
         # 署名を安定させないとリビルドのたびにアクセシビリティ権限が飛ぶため、
