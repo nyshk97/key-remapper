@@ -476,7 +476,9 @@ M0〜M2 完了、M3 はアプリ実装まで完了・配布まわりが未了、
 
 - [x] 再起動時のブート永続チェーン検証（2026-08-16 実施。boot 15:27:06 → KeyRemapper 自動起動 15:27:36 → `hidutil: applied 4 mappings (exit 0)` 15:27:38 → 直後から fire ログあり。全チェーン OK。ただし Karabiner の system extension（VirtualHIDDevice dext）は「次回再起動で消える」想定に反し再起動後も activated enabled で残存 → `sudo systemextensionsctl gc`（孤児 extension の回収）で除去完了。`uninstall` サブコマンドは SIP 有効時は使えない）
 - [ ] `tap_threshold_ms: 400` の体感確認（旧 Karabiner は実質 1 秒だった）
+  - 経過 (2026-08-16): この Mac での使用感は問題なしとのユーザー報告。400ms への短縮も違和感なし。期間満了（8/30 目安）まで継続観察
 - [ ] 誤発火・「実は使っていた Karabiner 機能」の洗い出し
+  - 経過 (2026-08-16): ここまで誤発火・機能不足の報告なし。継続観察
 - [x] 問題なければ cmd-eikana（応急フォールバック）を /Applications から削除（2026-08-16 前倒しで削除。M2 以降未使用・本アプリで問題が出ていないため。アクセシビリティ許可も `tccutil reset` で掃除済み。必要になれば dominion525/cmd-eikana の配布バイナリを再導入すればよい。教訓: ゴミ箱移動だけだと BTM 登録のログインヘルパーがゴミ箱内バンドルから起動し「URL スキームのハンドラなし」ダイアログが出る → ゴミ箱からの完全削除と設定 plist 削除まで実施して解消）
 
 ### 積み残し（優先度低・時期未定）
