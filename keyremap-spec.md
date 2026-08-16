@@ -367,7 +367,9 @@ case .tapDisabledByTimeout, .tapDisabledByUserInput:
 
 `remaps` は hidutil のコマンド文字列に変換して適用、`tap_actions` は event tap 側で解釈する。**キー名は Karabiner の命名に寄せる**（`return_or_enter` 等）と移行時の認知コストが下がる。`devices.include_builtin_only` は matching 手段が確定するまで `false`（全デバイス適用）で運用する（§6.1 の M0 実測を参照）。
 
-> **M1 での判明事項 (TCC):** launchd 起動のプロセスは、設定ファイルが `~/Library/CloudStorage/`（Dropbox 等）配下への symlink だと `Operation not permitted` で読めない（CloudStorage は TCC 保護対象で、責任プロセスが Full Disk Access を持たないとアクセス不可）。暫定 LaunchAgent はインストール時に設定を解決して hidutil の引数を plist に焼き込むことで回避した。**常駐アプリ（ユーザ起動のログイン項目）が同じ制約を受けるかは M2 で実機検証する**。受ける場合、「設定ファイルは dotfiles 管理下に置ける」という本ツールの核の主張に関わるため、設定の置き場所または読み取り方法の再設計が必要。
+> **M1 での判明事項 (TCC):** launchd 起動のプロセスは、設定ファイルが `~/Library/CloudStorage/`（Dropbox 等）配下への symlink だと `Operation not permitted` で読めない（CloudStorage は TCC 保護対象で、責任プロセスが Full Disk Access を持たないとアクセス不可）。暫定 LaunchAgent はインストール時に設定を解決して hidutil の引数を plist に焼き込むことで回避した。
+>
+> **M2 での検証結果:** LaunchServices 経由で起動した .app（ログイン項目相当）からは、CloudStorage への symlink 経由・直パスとも**問題なく読めた**（最小プローブアプリで実測）。制約は launchd 直下のプロセスのみ。したがって常駐アプリは設定を dotfiles 管理のまま普通に読んでよい。
 
 ---
 
@@ -416,6 +418,10 @@ case .tapDisabledByTimeout, .tapDisabledByUserInput:
 - tap 無効化からの自動復旧
 - スリープ復帰ハンドリング（tap の検証・再作成 + hidutil 再適用）
 
+> **進捗 (2026-08-16):** 実装・検証完了。fire（左→英数/右→かな）、keyDown・Shift・スクロールによるアボート、長押しタイムアウトの全ケースをログで確認。cmd-eikana は停止し、以後は本アプリでドッグフーディング（Debug ビルドを暫定ログイン項目に登録。M3 で正式な自動起動に置換）。
+>
+> **方針変更:** wake 時の hidutil 再適用は設定ローダ（M3）と一体で実装するため M3 に移動。M2 の wake 処理は tap の検証・再有効化のみ。閾値 400ms も M3 で設定ファイルから読むまではハードコード。
+
 ### M3: 統合とパッケージング（1〜2日）
 
 - メニューバー常駐 UI（状態表示 / 一時停止 / 設定を開く / 再読み込み）
@@ -446,7 +452,7 @@ case .tapDisabledByTimeout, .tapDisabledByUserInput:
 | Corne との二重適用 | 中 | `--matching` によるデバイス限定をデフォルトに |
 | Corne 側の素の ⌘ 単押しにも Layer 2 が効く | 低 | 仕様として受容（FR-4.3）。ZMK 側は mod-tap で LANG1/2 を直接送るため通常は顕在化しない |
 | OS バージョンによっては Input Monitoring 権限も追加要求される報告 | 低 | 発生時はユーザに許可を案内。NFR-2 の例外として記録 |
-| CloudStorage 配下へ symlink された設定ファイルが TCC で読めない | 中 | 暫定 LaunchAgent は plist 焼き込みで回避済み。常駐アプリでの読み取り可否を M2 で検証（§6.3） |
+| CloudStorage 配下へ symlink された設定ファイルが TCC で読めない | 低 | launchd 直下のみの制約と実測確認済み（§6.3）。LaunchAgent は plist 焼き込みで回避、常駐アプリは通常読み取りで問題なし |
 | 他のリマップツールとの競合 | 中 | Karabiner / ⌘英かな の併用を明示的に非推奨とし、起動時に検出して警告 |
 
 ---

@@ -1,0 +1,21 @@
+[tasks.gen]
+description = "XcodeGen で .xcodeproj を生成する"
+run = "xcodegen generate"
+
+[tasks.build]
+description = "Debug ビルドする"
+run = "xcodegen generate && xcodebuild -project KeyRemapper.xcodeproj -scheme KeyRemapper -configuration Debug -derivedDataPath build build"
+
+[tasks.run]
+description = "Debug ビルドして起動する（既存プロセスは終了してから）"
+run = """
+set -e
+mise run build
+pkill -x KeyRemapper 2>/dev/null || true
+sleep 1
+open -g build/Build/Products/Debug/KeyRemapper.app
+"""
+
+[tasks.log]
+description = "アプリのログを follow する"
+run = "tail -f /tmp/key-remapper.log"

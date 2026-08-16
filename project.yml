@@ -1,0 +1,37 @@
+name: KeyRemapper
+options:
+  deploymentTarget:
+    macOS: "13.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    ARCHS: arm64
+    MARKETING_VERSION: 0.1.0
+    CURRENT_PROJECT_VERSION: "$(MARKETING_VERSION)"
+targets:
+  KeyRemapper:
+    type: application
+    platform: macOS
+    sources:
+      - Sources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.nyshk97.key-remapper
+        # Apple Development 証明書のハッシュ直指定（名前指定は "Mac Development" に解決されて失敗する）
+        # 署名を安定させないとリビルドのたびにアクセシビリティ権限が飛ぶ
+        CODE_SIGN_IDENTITY: 7B158CF1876B7D0C89A173E85E33A2DC61196CB7
+        CODE_SIGN_STYLE: Manual
+        DEVELOPMENT_TEAM: U4WAHGGBR7
+    info:
+      path: Sources/Info.plist
+      properties:
+        CFBundleDisplayName: KeyRemapper
+        LSUIElement: true
+        NSPrincipalClass: NSApplication
+schemes:
+  KeyRemapper:
+    build:
+      targets:
+        KeyRemapper: all
+    run:
+      config: Debug
