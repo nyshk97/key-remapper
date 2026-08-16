@@ -14,7 +14,8 @@
 | 日本語入力切り替え | 左⌘ 単押し → 英数 / 右⌘ 単押し → かな |
 | 記号入れ替え | `-` ⇄ `'` |
 | 記号入れ替え | `;` ⇄ `return` |
-| 修飾キー | Caps Lock → Control |
+
+> **M0 での判明事項 (2026-08-16):** 当初 Karabiner の管轄と思っていた Caps Lock ⇄ Control は、実際には macOS システム設定の修飾キー機能で実現されていた（Caps→Control に加え、左 Control→Caps Lock の逆方向も意図的に使用中）。既に Karabiner 非依存かつアップデート耐性があるため、本ツールの守備範囲から除外した（非ゴール N6）。
 
 ### 課題
 
@@ -29,7 +30,7 @@
 
 **実際にやっていることのうち、Karabiner と同じ深さのレイヤーを必要とするものは一つもない。**
 
-- 記号入れ替え・Caps Lock は **単純な 1:1 キーコード置換** → `hidutil`（macOS 標準）で完結
+- 記号入れ替えは **単純な 1:1 キーコード置換** → `hidutil`（macOS 標準）で完結。Caps ⇄ Control はそもそもシステム設定側で実現済みでツール不要
 - 英数/かなだけが **単押し判定（tap vs hold）という状態機械** を必要とする → ユーザ空間の `CGEventTap` で十分
 
 したがって、Karabiner を作り直すのではなく、**必要な機能だけを 2 つの安定した層に分解して再実装する**。
@@ -53,6 +54,7 @@
 - N3. **Secure Input 中の動作は諦める**（パスワードフィールド等。英数/かな切り替えが必要な文脈ではない）
 - N4. **Windows / Linux 対応はしない**（macOS 専用）
 - N5. マウス・トラックパッドのリマップはしない
+- N6. **修飾キーの入れ替え（Caps ⇄ Control 等）はやらない**（macOS システム設定の修飾キー機能で実現済み。hidutil で重ねると二重適用で壊れるため本ツールでは触らない）
 
 > **重要な設計判断:** N1〜N3 のいずれかが必要になった時点で、それは「このツールの守備範囲外であり Karabiner を使うべき領域」と判断する。この線引きを曖昧にしないことが、本プロジェクトが Karabiner の二の舞にならないための最大の防御線。
 
@@ -71,7 +73,7 @@
 ┌─────────────────────────────────────────────────┐
 │ Layer 1: hidutil (IOKit HID / macOS 標準)        │
 │  - 1:1 キーコード置換                             │
-│  - `-`⇄`'`, `;`⇄return, CapsLock→Ctrl           │
+│  - `-`⇄`'`, `;`⇄return                          │
 │  - 権限不要 / Secure Input 中も有効               │
 └────────────────────┬────────────────────────────┘
                      │ 置換済みイベント
@@ -112,14 +114,13 @@ hidutil は macOS 10.12 から存在する標準コマンドで、**自分でコ
 | `'` quote | `-` hyphen | `0x700000034` | `0x70000002D` |
 | return | `;` semicolon | `0x700000028` | `0x700000033` |
 | `;` semicolon | return | `0x700000033` | `0x700000028` |
-| Caps Lock | Left Control | `0x700000039` | `0x7000000E0` |
 
 - FR-1.1: 設定はログイン時に自動適用される
 - FR-1.2: 適用対象デバイスを限定できる（後述の FR-4 参照）
 - FR-1.3: ワンコマンドで全解除できる
 - FR-1.4: 置換は HID レベルの無条件置換であり、**修飾キー併用時も入れ替わる**（例: `⌘Return` は `⌘;` に、`Shift+-` は `"` になる）。これは意図した挙動である
 
-> Caps Lock → Control は macOS のシステム設定（キーボード > 修飾キー）でも実現可能であり必須ではない。ただし設定を1箇所に集約する観点から、本ツール側で管理することを推奨（システム設定側は「そのまま」に戻しておく。二重適用を避けるため）。
+> Caps ⇄ Control はシステム設定（キーボード > 修飾キー）で実現済みのため本ツールでは扱わない（N6）。実環境では Caps→Control に加えて左 Control→Caps Lock の逆方向も設定されており、hidutil で caps を触ると「hidutil で Caps→Ctrl → システム設定で Ctrl→Caps」と一周して打ち消される。
 
 ### FR-2: ⌘ 単押しによる入力ソース切り替え（Layer 2）
 
@@ -152,7 +153,7 @@ hidutil は macOS 10.12 から存在する標準コマンドで、**自分でコ
 
 ### FR-5: 設定ファイル
 
-- FR-5.1: 単一のテキストファイル（JSON または TOML）で全設定を表現する
+- FR-5.1: 単一の JSON ファイルで全設定を表現する（Foundation の Codable だけで読める。依存ゼロ）
 - FR-5.2: 設定ファイルを編集して再読み込みするだけで反映される
 - FR-5.3: GUI 設定画面は提供しない（v1 時点）。メニューバーからは「設定ファイルを開く」「再読み込み」「一時停止」のみ
 - FR-5.4: 「一時停止」は**両層を無効化**する（hidutil の UserKeyMapping を空にし、event tap を止める）。再開で両方を再適用する
@@ -208,18 +209,19 @@ hidutil property --set '{"UserKeyMapping":[
   {"HIDKeyboardModifierMappingSrc":0x70000002D,"HIDKeyboardModifierMappingDst":0x700000034},
   {"HIDKeyboardModifierMappingSrc":0x700000034,"HIDKeyboardModifierMappingDst":0x70000002D},
   {"HIDKeyboardModifierMappingSrc":0x700000028,"HIDKeyboardModifierMappingDst":0x700000033},
-  {"HIDKeyboardModifierMappingSrc":0x700000033,"HIDKeyboardModifierMappingDst":0x700000028},
-  {"HIDKeyboardModifierMappingSrc":0x700000039,"HIDKeyboardModifierMappingDst":0x7000000E0}
+  {"HIDKeyboardModifierMappingSrc":0x700000033,"HIDKeyboardModifierMappingDst":0x700000028}
 ]}'
 ```
 
 **デバイス限定:**
 
 ```bash
-hidutil property --matching '{"VendorID":0x05AC,"ProductID":0x0342}' --set '{"UserKeyMapping":[...]}'
+hidutil property --matching '{"VendorID":<vid>,"ProductID":<pid>}' --set '{"UserKeyMapping":[...]}'
 ```
 
 デバイス一覧の取得は `hidutil list`。
+
+> **M0 実測 (Apple Silicon MacBook):** 内蔵キーボードのサービスは VendorID `0x0` / ProductID `0x35C`（vendor usage page 側）で、keyboard service（UsagePage 1 / Usage 6）は VID/PID とも `0x0`。VID/PID による matching が内蔵キーボードに効くかは未検証。**確定するまでは matching なしの全デバイス適用で運用**し、Corne を接続するタイミングで実測して FR-4 の実装方法を決める。
 
 **解除:**
 
@@ -233,7 +235,6 @@ hidutil property --set '{"UserKeyMapping":[]}'
 - OS バージョンによってはスリープ復帰後に外れる報告がある → `NSWorkspace.didWakeNotification` で再適用する（Layer 2 の tap 検証と同じフックで行える）
 - 外付けキーボードを後から接続した場合、そのデバイスには適用されないことがある → 再実行が必要。IOKit の device matching notification を監視して自動再適用するのが理想（v1.1 以降）
 - `--matching` 付きで適用した設定は、解除時も同じ `--matching` を付けないと消えない
-- 内蔵キーボードの Caps Lock には誤爆防止のデバウンスがあり、Control 化しても速いタップを取りこぼすことがある。これはハードウェア由来で Karabiner でも同じ（本ツールへの移行による回帰ではない）
 
 ### 6.2 Layer 2: CGEventTap による単押し検出
 
@@ -341,18 +342,17 @@ case .tapDisabledByTimeout, .tapDisabledByUserInput:
 | 他アプリの合成イベント | `.eventSourceUserData` で判別可能だが v1 では区別しない |
 | Secure Input 中 | イベントが来ないため自然に無効。エラーとしない。メニューバーに状態表示があると親切（`IsSecureEventInputEnabled()`） |
 
-### 6.3 設定ファイル案
+### 6.3 設定ファイル
 
-`~/.config/<toolname>/config.json`
+`~/.config/key-remapper/config.json`
 
 ```json
 {
   "remaps": [
-    { "from": "hyphen",    "to": "quote" },
-    { "from": "quote",     "to": "hyphen" },
-    { "from": "return",    "to": "semicolon" },
-    { "from": "semicolon", "to": "return" },
-    { "from": "caps_lock", "to": "left_control" }
+    { "from": "hyphen",          "to": "quote" },
+    { "from": "quote",           "to": "hyphen" },
+    { "from": "return_or_enter", "to": "semicolon" },
+    { "from": "semicolon",       "to": "return_or_enter" }
   ],
   "tap_actions": [
     { "key": "left_command",  "action": "eisu" },
@@ -360,12 +360,14 @@ case .tapDisabledByTimeout, .tapDisabledByUserInput:
   ],
   "tap_threshold_ms": 400,
   "devices": {
-    "include_builtin_only": true
+    "include_builtin_only": false
   }
 }
 ```
 
-`remaps` は hidutil のコマンド文字列に変換して適用、`tap_actions` は event tap 側で解釈する。**キー名は Karabiner の命名に寄せる**（`return_or_enter` 等）と移行時の認知コストが下がる。
+`remaps` は hidutil のコマンド文字列に変換して適用、`tap_actions` は event tap 側で解釈する。**キー名は Karabiner の命名に寄せる**（`return_or_enter` 等）と移行時の認知コストが下がる。`devices.include_builtin_only` は matching 手段が確定するまで `false`（全デバイス適用）で運用する（§6.1 の M0 実測を参照）。
+
+> **M1 での判明事項 (TCC):** launchd 起動のプロセスは、設定ファイルが `~/Library/CloudStorage/`（Dropbox 等）配下への symlink だと `Operation not permitted` で読めない（CloudStorage は TCC 保護対象で、責任プロセスが Full Disk Access を持たないとアクセス不可）。暫定 LaunchAgent はインストール時に設定を解決して hidutil の引数を plist に焼き込むことで回避した。**常駐アプリ（ユーザ起動のログイン項目）が同じ制約を受けるかは M2 で実機検証する**。受ける場合、「設定ファイルは dotfiles 管理下に置ける」という本ツールの核の主張に関わるため、設定の置き場所または読み取り方法の再設計が必要。
 
 ---
 
@@ -374,6 +376,7 @@ case .tapDisabledByTimeout, .tapDisabledByUserInput:
 | 項目 | 方針 |
 | --- | --- |
 | 言語 | Swift（AppKit / Core Graphics） |
+| Bundle ID | `io.github.nyshk97.key-remapper`（TCC 永続化のため以後変更しない） |
 | 最低対応 OS | macOS 13 Ventura 以降 |
 | アーキテクチャ | arm64（Apple Silicon 専用で可） |
 | 署名 | Developer ID Application、notarization 必須 |
@@ -396,11 +399,15 @@ case .tapDisabledByTimeout, .tapDisabledByUserInput:
 
 > M0 は省略しないこと。「実は使っていた」機能が後から出てくると設計が崩れる。逆にここで困らなければ、非ゴール N1〜N3 の線引きが正しいことが実証される。
 
+> **進捗 (2026-08-16):** セットアップ完了・生活検証開始。Karabiner は空プロファイル「M0 (no remap)」へ切り替え（元設定は「Default profile」に温存）、hidutil 4 件を手動適用、cmd-eikana v2.4.2 導入・アクセシビリティ権限付与済み。記号打鍵はこれまで通りであることを確認。Caps がシステム設定管轄と判明（→ N6）。旧 Karabiner の単押しタイムアウトは実質 1 秒だった（`to_if_alone` デフォルト）ため、`tap_threshold_ms` のデフォルト 400ms は生活検証の体感で見直す可能性あり。
+
 ### M1: Layer 1 の固定化（半日）
 
 - 設定ファイル → hidutil コマンド変換スクリプト
 - 暫定の LaunchAgent で自動適用（M3 でアプリに統合し、撤去する）
 - 再起動をまたいで永続することを確認
+
+> **進捗 (2026-08-16):** `scripts/key-remapper-apply`（変換・適用）と `scripts/install-launchagent.sh` / `uninstall-launchagent.sh` を作成、LaunchAgent 登録済み。設定は `~/.config/key-remapper/config.json`（dotfiles 管理・Dropbox symlink）。クリア → RunAtLoad で 4 件再適用を確認済み。実際の再起動またぎは未確認（次回再起動時に確認）。
 
 ### M2: Layer 2 の実装（2〜3日）
 
@@ -439,6 +446,7 @@ case .tapDisabledByTimeout, .tapDisabledByUserInput:
 | Corne との二重適用 | 中 | `--matching` によるデバイス限定をデフォルトに |
 | Corne 側の素の ⌘ 単押しにも Layer 2 が効く | 低 | 仕様として受容（FR-4.3）。ZMK 側は mod-tap で LANG1/2 を直接送るため通常は顕在化しない |
 | OS バージョンによっては Input Monitoring 権限も追加要求される報告 | 低 | 発生時はユーザに許可を案内。NFR-2 の例外として記録 |
+| CloudStorage 配下へ symlink された設定ファイルが TCC で読めない | 中 | 暫定 LaunchAgent は plist 焼き込みで回避済み。常駐アプリでの読み取り可否を M2 で検証（§6.3） |
 | 他のリマップツールとの競合 | 中 | Karabiner / ⌘英かな の併用を明示的に非推奨とし、起動時に検出して警告 |
 
 ---
