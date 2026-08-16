@@ -38,3 +38,7 @@ run = "tail -f /tmp/keyrc-dev.log"
 [tasks.log-prod]
 description = "本番アプリのログを follow する"
 run = "tail -f /tmp/keyrc.log"
+
+[tasks.release-zip]
+description = "配布適格に再署名して dist/keyrc-<version>.zip を作る（notarize 前段）"
+run = "bash scripts/make-release-zip.sh"

@@ -40,6 +40,8 @@ targets:
           CODE_SIGN_IDENTITY: 85D91870B2836DB303E2224A2D8D56051F26A6FB
           ENABLE_HARDENED_RUNTIME: YES
           OTHER_CODE_SIGN_FLAGS: --timestamp
+          # 素の xcodebuild build が get-task-allow を注入して notarize が Invalid になるのを防ぐ
+          CODE_SIGN_INJECT_BASE_ENTITLEMENTS: NO
     info:
       path: Sources/Info.plist
       properties:
