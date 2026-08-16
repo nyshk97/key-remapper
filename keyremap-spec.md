@@ -457,11 +457,20 @@ M0〜M2 完了、M3 はアプリ実装まで完了・配布まわりが未了、
 ### M3 残り（配布まわり）
 
 - [x] アプリ名の決定とリネーム（2026-08-16: **keyrc** に決定。.zshrc 系譜の「キーボードの rc ファイル」で、差別化の核＝テキスト設定1枚をそのまま名前にした。target・Bundle ID `io.github.nyshk97.keyrc(.dev)`・設定 `~/.config/keyrc/config.json`・ログ `/tmp/keyrc(-dev).log`・`scripts/keyrc-apply` まで一貫リネーム。dotfiles 側も `config/keyrc/` に改名済み。Bundle ID 変更に伴いアクセシビリティ権限は再付与）
-- [ ] Sparkle 組み込み（SwiftPM 依存追加、EdDSA 鍵生成、SUFeedURL 設定）
-- [ ] notarization（**ユーザーの Terminal で `notarytool` 実行が必要**。資格情報が data-protection keychain にあり Claude Code の Bash から届かないため）
-- [ ] GitHub Release v0.1.0（`ditto -c -k --sequesterRsrc --keepParent` で zip 化 + appcast.xml）
-- [ ] Homebrew Cask（`nyshk97/homebrew-tap` リポジトリ作成 + cask 定義）
-- [ ] Brewfile に cask を追記（新 Mac セットアップ動線の完成）
+- [x] Sparkle 組み込み（2026-08-16: SwiftPM で Sparkle 2 追加・本番のみ有効。EdDSA 鍵は keychain の既存デフォルト鍵を再利用（Sparkle 公式が複数アプリ1鍵を推奨）。SUFeedURL は `releases/latest/download/appcast.xml`。XcodeGen デフォルトの CFBundleVersion 1.0 が入り版数比較が壊れる問題を発見し MARKETING_VERSION 連動に修正）
+- [x] notarization（2026-08-16: `mise run release-zip` で配布適格化 → ユーザー Terminal で submit、status: Accepted・staple 済み。ハマり所: ① Sparkle 内部 XPC が adhoc 署名のまま残る → inside-out 再署名で解決 ② get-task-allow → `CODE_SIGN_INJECT_BASE_ENTITLEMENTS: NO` で根本停止 ③ ネットワークの IPv6 経路が connection refused で notarytool が失敗 → `networksetup -setv6off Wi-Fi` で回避 ④ アプリ用パスワードは新規発行が必要だった）
+- [x] GitHub Release v0.1.0（2026-08-16: `mise run publish-release` で appcast.xml 生成込みで公開。https://github.com/nyshk97/keyrc/releases/tag/v0.1.0 ）
+- [x] Homebrew Cask（2026-08-16: 既存の `nyshk97/homebrew-tap` に `Casks/keyrc.rb` を追加。auto_updates true。`depends_on macos:` の文字列比較書式は deprecated → symbol 形式）
+- [x] Brewfile に cask を追記（2026-08-16: `cask 'nyshk97/tap/keyrc'`。手動配置していた /Applications/keyrc.app は削除し cask 管理に移行）
+
+### 次回以降のリリース手順（v0.1.1〜）
+
+1. `project.yml` の `MARKETING_VERSION` を bump（CFBundleVersion は連動）
+2. `mise run release-zip` → dist/keyrc-\<version\>.zip（署名検証込み）
+3. ユーザー Terminal: `xcrun notarytool submit dist/keyrc-<version>.zip --keychain-profile notary --wait` → Accepted 確認 → staple + 再 zip（release-zip の出力に手順が出る）。IPv6 が腐っている回線では先に `sudo networksetup -setv6off Wi-Fi`
+4. `mise run publish-release`（staple 検証 → EdDSA 署名 → appcast.xml → GitHub Release）
+5. homebrew-tap の `Casks/keyrc.rb` の version / sha256 を更新して push（sha256 は `shasum -a 256 dist/keyrc-<version>.zip`）
+6. 既存インストール環境は Sparkle が自動更新するので brew 側の操作は不要
 
 ### M4 残り（ドッグフーディング、〜2026-08-30 目安）
 
