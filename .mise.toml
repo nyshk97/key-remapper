@@ -4,20 +4,20 @@ run = "xcodegen generate"
 
 [tasks.build]
 description = "Debug (dev) ビルドする"
-run = "xcodegen generate && xcodebuild -project KeyRemapper.xcodeproj -scheme KeyRemapper -configuration Debug -derivedDataPath build build"
+run = "xcodegen generate && xcodebuild -project keyrc.xcodeproj -scheme keyrc -configuration Debug -derivedDataPath build build"
 
 [tasks.build-release]
 description = "Release ビルドする（Developer ID 署名 + Hardened Runtime）"
-run = "xcodegen generate && xcodebuild -project KeyRemapper.xcodeproj -scheme KeyRemapper -configuration Release -derivedDataPath build build"
+run = "xcodegen generate && xcodebuild -project keyrc.xcodeproj -scheme keyrc -configuration Release -derivedDataPath build build"
 
 [tasks.run]
 description = "dev ビルドして起動する（既存の dev プロセスは終了してから）"
 run = """
 set -e
 mise run build
-pkill -x 'KeyRemapper Dev' 2>/dev/null || true
+pkill -x 'keyrc Dev' 2>/dev/null || true
 sleep 1
-open -g 'build/Build/Products/Debug/KeyRemapper Dev.app'
+open -g 'build/Build/Products/Debug/keyrc Dev.app'
 """
 
 [tasks.install]
@@ -25,16 +25,16 @@ description = "Release ビルドを /Applications に配置して起動し直す
 run = """
 set -e
 mise run build-release
-pkill -x KeyRemapper 2>/dev/null || true
+pkill -x keyrc 2>/dev/null || true
 sleep 1
-ditto 'build/Build/Products/Release/KeyRemapper.app' /Applications/KeyRemapper.app
-open -g /Applications/KeyRemapper.app
+ditto 'build/Build/Products/Release/keyrc.app' /Applications/keyrc.app
+open -g /Applications/keyrc.app
 """
 
 [tasks.log]
 description = "dev ビルドのログを follow する"
-run = "tail -f /tmp/key-remapper-dev.log"
+run = "tail -f /tmp/keyrc-dev.log"
 
 [tasks.log-prod]
 description = "本番アプリのログを follow する"
-run = "tail -f /tmp/key-remapper.log"
+run = "tail -f /tmp/keyrc.log"

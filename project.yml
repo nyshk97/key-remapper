@@ -1,4 +1,4 @@
-name: KeyRemapper
+name: keyrc
 options:
   deploymentTarget:
     macOS: "13.0"
@@ -9,7 +9,7 @@ settings:
     MARKETING_VERSION: 0.1.0
     CURRENT_PROJECT_VERSION: "$(MARKETING_VERSION)"
 targets:
-  KeyRemapper:
+  keyrc:
     type: application
     platform: macOS
     sources:
@@ -23,13 +23,13 @@ targets:
         # 署名を安定させないとリビルドのたびにアクセシビリティ権限が飛ぶため、
         # CODE_SIGN_IDENTITY は名前でなく証明書ハッシュで固定する
         Debug:
-          PRODUCT_BUNDLE_IDENTIFIER: io.github.nyshk97.key-remapper.dev
-          PRODUCT_NAME: KeyRemapper Dev
+          PRODUCT_BUNDLE_IDENTIFIER: io.github.nyshk97.keyrc.dev
+          PRODUCT_NAME: keyrc Dev
           # Apple Development: nyshk97@gmail.com
           CODE_SIGN_IDENTITY: 7B158CF1876B7D0C89A173E85E33A2DC61196CB7
         Release:
-          PRODUCT_BUNDLE_IDENTIFIER: io.github.nyshk97.key-remapper
-          PRODUCT_NAME: KeyRemapper
+          PRODUCT_BUNDLE_IDENTIFIER: io.github.nyshk97.keyrc
+          PRODUCT_NAME: keyrc
           # Developer ID Application: Tsubasa Namatame
           CODE_SIGN_IDENTITY: 85D91870B2836DB303E2224A2D8D56051F26A6FB
           ENABLE_HARDENED_RUNTIME: YES
@@ -41,9 +41,9 @@ targets:
         LSUIElement: true
         NSPrincipalClass: NSApplication
 schemes:
-  KeyRemapper:
+  keyrc:
     build:
       targets:
-        KeyRemapper: all
+        keyrc: all
     run:
       config: Debug

@@ -456,6 +456,7 @@ M0〜M2 完了、M3 はアプリ実装まで完了・配布まわりが未了、
 
 ### M3 残り（配布まわり）
 
+- [x] アプリ名の決定とリネーム（2026-08-16: **keyrc** に決定。.zshrc 系譜の「キーボードの rc ファイル」で、差別化の核＝テキスト設定1枚をそのまま名前にした。target・Bundle ID `io.github.nyshk97.keyrc(.dev)`・設定 `~/.config/keyrc/config.json`・ログ `/tmp/keyrc(-dev).log`・`scripts/keyrc-apply` まで一貫リネーム。dotfiles 側も `config/keyrc/` に改名済み。Bundle ID 変更に伴いアクセシビリティ権限は再付与）
 - [ ] Sparkle 組み込み（SwiftPM 依存追加、EdDSA 鍵生成、SUFeedURL 設定）
 - [ ] notarization（**ユーザーの Terminal で `notarytool` 実行が必要**。資格情報が data-protection keychain にあり Claude Code の Bash から届かないため）
 - [ ] GitHub Release v0.1.0（`ditto -c -k --sequesterRsrc --keepParent` で zip 化 + appcast.xml）

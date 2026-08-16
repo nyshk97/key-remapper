@@ -3,9 +3,9 @@ import Foundation
 /// open 経由の起動では stdout を捕捉できないため、ファイルに追記する
 enum Log {
     #if DEBUG
-    static let path = "/tmp/key-remapper-dev.log"
+    static let path = "/tmp/keyrc-dev.log"
     #else
-    static let path = "/tmp/key-remapper.log"
+    static let path = "/tmp/keyrc.log"
     #endif
 
     private static let formatter: DateFormatter = {

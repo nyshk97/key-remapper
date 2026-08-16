@@ -17,8 +17,8 @@ hidutil property --get UserKeyMapping | grep -c HIDKeyboardModifierMappingSrc
 **「クリア → 即時再適用」は hidutil が実効しなくなることがある（実測）。クリアを挟む検証は必ず数秒空ける。**
 
 ```bash
-tail /tmp/key-remapper.log        # 本番（/Applications）
-tail /tmp/key-remapper-dev.log    # dev ビルド
+tail /tmp/keyrc.log        # 本番（/Applications）
+tail /tmp/keyrc-dev.log    # dev ビルド
 # 起動直後・wake 直後に "hidutil: applied 4 mappings (exit 0)" が出ていれば OK
 ```
 
@@ -29,7 +29,7 @@ System Events で自動操作できる（status item は **menu bar 1**。LSUIEl
 ```bash
 osascript <<'EOF'
 tell application "System Events"
-  tell process "KeyRemapper"  # dev は "KeyRemapper Dev"
+  tell process "keyrc"  # dev は "keyrc Dev"
     click menu bar item 1 of menu bar 1
     delay 0.3
     click menu item "一時停止" of menu 1 of menu bar item 1 of menu bar 1
@@ -41,8 +41,8 @@ EOF
 
 ## dev と本番の併存
 
-- 本番: `/Applications/KeyRemapper.app`（`io.github.nyshk97.key-remapper` / Developer ID 署名 / SMAppService でログイン起動）
-- dev: `mise run run` で起動（`io.github.nyshk97.key-remapper.dev` / Apple Development 署名 / ログイン起動なし）
+- 本番: `/Applications/keyrc.app`（`io.github.nyshk97.keyrc` / Developer ID 署名 / SMAppService でログイン起動）
+- dev: `mise run run` で起動（`io.github.nyshk97.keyrc.dev` / Apple Development 署名 / ログイン起動なし）
 - TCC は別枠。dev で Layer 2 を検証するときはメニューから本番を「一時停止」する（hidutil は同値上書きなので併存可）
 
 ## Layer 2 (⌘単押し)
@@ -55,10 +55,11 @@ EOF
 Karabiner は 2026-08-16 にアンインストール済み（復帰先は無い）。
 
 ```bash
-./scripts/uninstall-launchagent.sh                # LaunchAgent 撤去 + hidutil クリア
-pkill -x KeyRemapper                              # Layer 2 停止
+pkill -x keyrc                                    # Layer 2 停止
+hidutil property --set '{"UserKeyMapping":[]}'    # Layer 1 クリア
+# ログイン起動を止めるにはメニューバーから終了ではなく、アプリ削除 or System Settings → ログイン項目で OFF
 ```
 
-KeyRemapper が不調な場合の応急フォールバック:
+keyrc が不調な場合の応急フォールバック:
 - ⌘単押し: cmd-eikana は 2026-08-16 に削除済み。必要なら dominion525/cmd-eikana の配布バイナリ（署名・公証済み）を再導入する
-- 記号スワップ: `./scripts/key-remapper-apply` を手動実行（アプリなしでも hidutil は効く）
+- 記号スワップ: `./scripts/keyrc-apply` を手動実行（アプリなしでも hidutil は効く）

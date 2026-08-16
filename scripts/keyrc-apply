@@ -2,7 +2,7 @@
 """config.json の remaps を hidutil UserKeyMapping に変換して適用する。
 
 M1 の暫定スクリプト。M3 で常駐アプリに統合されたら LaunchAgent ごと撤去する。
-使い方: key-remapper-apply [--print] [config.json のパス]
+使い方: keyrc-apply [--print] [config.json のパス]
   --print: 適用せず hidutil に渡す JSON を stdout に出力する
   （LaunchAgent は TCC の制約で ~/.config 配下の CloudStorage symlink を読めないため、
     install-launchagent.sh がこの出力を plist に焼き込む）
@@ -49,7 +49,7 @@ def main() -> None:
     print_only = "--print" in args
     args = [a for a in args if a != "--print"]
     config_path = (
-        args[0] if args else os.path.expanduser("~/.config/key-remapper/config.json")
+        args[0] if args else os.path.expanduser("~/.config/keyrc/config.json")
     )
     with open(config_path) as f:
         config = json.load(f)
@@ -59,7 +59,7 @@ def main() -> None:
         src = KEY_USAGES.get(remap.get("from"))
         dst = KEY_USAGES.get(remap.get("to"))
         if src is None or dst is None:
-            sys.exit(f"key-remapper-apply: unknown key name in {remap!r}")
+            sys.exit(f"keyrc-apply: unknown key name in {remap!r}")
         mapping.append(
             {
                 "HIDKeyboardModifierMappingSrc": USAGE_PAGE_KEYBOARD + src,
@@ -76,7 +76,7 @@ def main() -> None:
         check=True,
         stdout=subprocess.DEVNULL,
     )
-    print(f"key-remapper-apply: applied {len(mapping)} mappings from {config_path}")
+    print(f"keyrc-apply: applied {len(mapping)} mappings from {config_path}")
 
 
 if __name__ == "__main__":

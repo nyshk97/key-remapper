@@ -29,7 +29,7 @@ struct Config {
     var tapActions: [TapSide: TapAction]
     var tapThresholdMs: Double
 
-    static let path = NSHomeDirectory() + "/.config/key-remapper/config.json"
+    static let path = NSHomeDirectory() + "/.config/keyrc/config.json"
 
     /// 設定が読めないときのフォールバック。
     /// remaps が空 = 「hidutil には触らない」を意味する（適用すると既存マッピングを消してしまうため、

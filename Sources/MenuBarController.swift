@@ -41,9 +41,9 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
         #if DEBUG
-        let versionTitle = "KeyRemapper v\(version) (dev)"
+        let versionTitle = "keyrc v\(version) (dev)"
         #else
-        let versionTitle = "KeyRemapper v\(version)"
+        let versionTitle = "keyrc v\(version)"
         #endif
         let versionItem = NSMenuItem(title: versionTitle, action: nil, keyEquivalent: "")
         versionItem.isEnabled = false
@@ -69,7 +69,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         loginItem.state = SMAppService.mainApp.status == .enabled ? .on : .off
 
         let symbolName = (app.isPaused || !app.isTapHealthy) ? "keyboard.slash" : "keyboard"
-        let image = NSImage(systemSymbolName: symbolName, accessibilityDescription: "KeyRemapper")
+        let image = NSImage(systemSymbolName: symbolName, accessibilityDescription: "keyrc")
         image?.isTemplate = true
         statusItem.button?.image = image
     }
