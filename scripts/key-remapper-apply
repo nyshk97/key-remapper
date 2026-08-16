@@ -1,0 +1,83 @@
+#!/usr/bin/env python3
+"""config.json の remaps を hidutil UserKeyMapping に変換して適用する。
+
+M1 の暫定スクリプト。M3 で常駐アプリに統合されたら LaunchAgent ごと撤去する。
+使い方: key-remapper-apply [--print] [config.json のパス]
+  --print: 適用せず hidutil に渡す JSON を stdout に出力する
+  （LaunchAgent は TCC の制約で ~/.config 配下の CloudStorage symlink を読めないため、
+    install-launchagent.sh がこの出力を plist に焼き込む）
+"""
+import json
+import os
+import subprocess
+import sys
+
+USAGE_PAGE_KEYBOARD = 0x700000000
+
+# キー名は Karabiner の命名に寄せる（keyremap-spec.md §6.3）
+KEY_USAGES = {
+    "return_or_enter": 0x28,
+    "escape": 0x29,
+    "delete_or_backspace": 0x2A,
+    "tab": 0x2B,
+    "spacebar": 0x2C,
+    "hyphen": 0x2D,
+    "equal_sign": 0x2E,
+    "open_bracket": 0x2F,
+    "close_bracket": 0x30,
+    "backslash": 0x31,
+    "semicolon": 0x33,
+    "quote": 0x34,
+    "grave_accent_and_tilde": 0x35,
+    "comma": 0x36,
+    "period": 0x37,
+    "slash": 0x38,
+    "caps_lock": 0x39,
+    "left_control": 0xE0,
+    "left_shift": 0xE1,
+    "left_option": 0xE2,
+    "left_command": 0xE3,
+    "right_control": 0xE4,
+    "right_shift": 0xE5,
+    "right_option": 0xE6,
+    "right_command": 0xE7,
+}
+
+
+def main() -> None:
+    args = sys.argv[1:]
+    print_only = "--print" in args
+    args = [a for a in args if a != "--print"]
+    config_path = (
+        args[0] if args else os.path.expanduser("~/.config/key-remapper/config.json")
+    )
+    with open(config_path) as f:
+        config = json.load(f)
+
+    mapping = []
+    for remap in config.get("remaps", []):
+        src = KEY_USAGES.get(remap.get("from"))
+        dst = KEY_USAGES.get(remap.get("to"))
+        if src is None or dst is None:
+            sys.exit(f"key-remapper-apply: unknown key name in {remap!r}")
+        mapping.append(
+            {
+                "HIDKeyboardModifierMappingSrc": USAGE_PAGE_KEYBOARD + src,
+                "HIDKeyboardModifierMappingDst": USAGE_PAGE_KEYBOARD + dst,
+            }
+        )
+
+    payload = json.dumps({"UserKeyMapping": mapping})
+    if print_only:
+        print(payload)
+        return
+    subprocess.run(
+        ["/usr/bin/hidutil", "property", "--set", payload],
+        check=True,
+        stdout=subprocess.DEVNULL,
+    )
+    print(f"key-remapper-apply: applied {len(mapping)} mappings from {config_path}")
+
+
+if __name__ == "__main__":
+    main()
