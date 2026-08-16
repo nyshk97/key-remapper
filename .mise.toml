@@ -42,3 +42,7 @@ run = "tail -f /tmp/keyrc.log"
 [tasks.release-zip]
 description = "配布適格に再署名して dist/keyrc-<version>.zip を作る（notarize 前段）"
 run = "bash scripts/make-release-zip.sh"
+
+[tasks.publish-release]
+description = "notarize済みzipをGitHub Releaseとして公開する（appcast.xml生成込み）"
+run = "bash scripts/publish-release.sh"
