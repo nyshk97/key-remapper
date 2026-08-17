@@ -465,12 +465,18 @@ M0〜M2 完了、M3 はアプリ実装まで完了・配布まわりが未了、
 
 ### 次回以降のリリース手順（v0.1.1〜）
 
-1. `project.yml` の `MARKETING_VERSION` を bump（CFBundleVersion は連動）
-2. `mise run release-zip` → dist/keyrc-\<version\>.zip（署名検証込み）
-3. ユーザー Terminal: `xcrun notarytool submit dist/keyrc-<version>.zip --keychain-profile nyshk97-notary --wait` → Accepted 確認 → staple + 再 zip（release-zip の出力に手順が出る）。IPv6 が腐っている回線では先に `sudo networksetup -setv6off Wi-Fi`
-4. `mise run publish-release`（staple 検証 → EdDSA 署名 → appcast.xml → GitHub Release）
-5. homebrew-tap の `Casks/keyrc.rb` の version / sha256 を更新して push（sha256 は `shasum -a 256 dist/keyrc-<version>.zip`）
-6. 既存インストール環境は Sparkle が自動更新するので brew 側の操作は不要
+1. `project.yml` の `MARKETING_VERSION` を bump（CFBundleVersion は連動）してコミット → push
+   （preflight が「clean worktree」「HEAD == origin/main」を要求する）
+2. 自分の Terminal で `mise run release`。preflight → 配布適格に再署名して zip → notarize + staple →
+   GitHub Release 公開（appcast.xml 生成込み）まで通す。notarize は keychain の資格情報を読むため
+   Claude Code の Bash からは届かないことがある。IPv6 が腐っている回線では先に `sudo networksetup -setv6off Wi-Fi`
+3. homebrew-tap の `Casks/keyrc.rb` の version / sha256 を更新して push（sha256 は `shasum -a 256 dist/keyrc-<version>.zip`）
+4. 既存インストール環境は Sparkle が自動更新するので brew 側の操作は不要
+
+途中で失敗したときは個別タスクで再開できる: `release:preflight` / `release-zip` /
+`release:notarize` / `publish-release`。notarize の資格情報は keychain プロファイル
+`nyshk97-notary`（自作 Mac アプリ共通。中身は App Store Connect の API キーで、`.p8` は
+Dropbox の `secrets/`）。`NOTARY_PROFILE` 環境変数で上書きできる。
 
 ### M4 残り（ドッグフーディング、〜2026-08-30 目安）
 

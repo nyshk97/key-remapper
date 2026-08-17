@@ -5,6 +5,10 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+# 単体実行されたときのために、ここでも preflight を通す（release 経由なら既に通っている。
+# 二重実行になるが検査だけなので副作用は無い）。
+bash scripts/preflight.sh
+
 APP="build/Build/Products/Release/keyrc.app"
 VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP/Contents/Info.plist")
 ZIP="dist/keyrc-$VERSION.zip"

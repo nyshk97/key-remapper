@@ -7,7 +7,17 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-IDENTITY="85D91870B2836DB303E2224A2D8D56051F26A6FB" # Developer ID Application: Tsubasa Namatame
+# 署名 ID のハッシュはマシンごとに異なるため直書きしない（別 Mac に clone した瞬間に
+# 署名で落ちる）。Team ID で絞って keychain から解決する。gen-signing-xcconfig.sh が
+# Release 用 xcconfig に書き出すのと同じ証明書を引くこと。
+TEAM_ID="VYDUR99LAM"
+IDENTITY=$(security find-identity -v -p codesigning 2>/dev/null \
+    | awk -F'"' "/Developer ID Application.*\\($TEAM_ID\\)/ {print \$2; exit}")
+if [ -z "$IDENTITY" ]; then
+    echo "NG: Developer ID Application（Team $TEAM_ID）の証明書が keychain にない" >&2
+    echo "    Xcode → Settings → Accounts → Manage Certificates から取得する" >&2
+    exit 1
+fi
 APP="build/Build/Products/Release/keyrc.app"
 SPARKLE="$APP/Contents/Frameworks/Sparkle.framework/Versions/B"
 
@@ -57,6 +67,5 @@ ZIP="dist/keyrc-$VERSION.zip"
 ditto -c -k --sequesterRsrc --keepParent "$APP" "$ZIP"
 
 echo "OK: $ZIP"
-echo "次: xcrun notarytool submit \"$ZIP\" --keychain-profile nyshk97-notary --wait"
-echo "    → Accepted 後: ditto -x -k \"$ZIP\" /tmp/staple && xcrun stapler staple /tmp/staple/keyrc.app"
-echo "      再zip: ditto -c -k --sequesterRsrc --keepParent /tmp/staple/keyrc.app \"$ZIP\""
+echo "次: mise run release:notarize（submit → staple → 再 zip。自分の Terminal で実行する）"
+echo "    その後: mise run publish-release"

@@ -5,9 +5,12 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+# 配布用の Developer ID は Team ID で絞る（keychain に他 Team の証明書があっても誤爆しない）。
+# make-release-zip.sh の再署名も同じ Team で引くので、両者の解決先が食い違わない。
+RELEASE_TEAM_ID="VYDUR99LAM"
 ids=$(security find-identity -v -p codesigning)
 debug_hash=$(echo "$ids" | awk '/"Apple Development/ {print $2; exit}')
-release_hash=$(echo "$ids" | awk '/"Developer ID Application/ {print $2; exit}')
+release_hash=$(echo "$ids" | awk "/\"Developer ID Application.*\\($RELEASE_TEAM_ID\\)\"/ {print \$2; exit}")
 
 # 同一内容の上書きをしない（xcconfig の mtime 更新で全リビルドが走るのを防ぐ）
 write_if_changed() {

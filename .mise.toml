@@ -39,10 +39,33 @@ run = "tail -f /tmp/keyrc-dev.log"
 description = "本番アプリのログを follow する"
 run = "tail -f /tmp/keyrc.log"
 
+# --- リリース -------------------------------------------------------------
+# 通常は release 1本で通す。個別タスクは途中で失敗したときの再開用に残してある。
+# notarize は keychain の資格情報を読むため、自分の Terminal で実行する
+# （Claude Code の Bash からは keychain に届かない環境がある）。
+
+[tasks.release]
+description = "リリースする（preflight → zip → notarize → GitHub Release 公開）。自分の Terminal で実行する"
+run = """
+set -e
+bash scripts/preflight.sh
+bash scripts/make-release-zip.sh
+bash scripts/notarize.sh
+bash scripts/publish-release.sh
+"""
+
+[tasks."release:preflight"]
+description = "リリース前チェックだけ実行する（main・clean worktree・push 済み・タグと Release の未作成）"
+run = "bash scripts/preflight.sh"
+
 [tasks.release-zip]
 description = "配布適格に再署名して dist/keyrc-<version>.zip を作る（notarize 前段）"
 run = "bash scripts/make-release-zip.sh"
 
+[tasks."release:notarize"]
+description = "dist の zip を notarize + staple して差し替える。自分の Terminal で実行する"
+run = "bash scripts/notarize.sh"
+
 [tasks.publish-release]
-description = "notarize済みzipをGitHub Releaseとして公開する（appcast.xml生成込み）"
+description = "notarize済みzipをGitHub Releaseとして公開する（appcast.xml生成込み）。自分の Terminal で実行する"
 run = "bash scripts/publish-release.sh"
