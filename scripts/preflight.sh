@@ -22,7 +22,7 @@ git fetch origin --tags --quiet
 
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 if [ "$BRANCH" != "main" ]; then
-    echo "NG: カレントブランチが main でない（$BRANCH）"; exit 1
+    echo "NG: カレントブランチが main でない（${BRANCH}）"; exit 1
 fi
 
 # 未追跡ファイルも含めて見る。ビルド定義に追加済みの新規ソースが未追跡だと、

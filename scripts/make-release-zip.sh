@@ -14,7 +14,7 @@ TEAM_ID="VYDUR99LAM"
 IDENTITY=$(security find-identity -v -p codesigning 2>/dev/null \
     | awk -F'"' "/Developer ID Application.*\\($TEAM_ID\\)/ {print \$2; exit}")
 if [ -z "$IDENTITY" ]; then
-    echo "NG: Developer ID Application（Team $TEAM_ID）の証明書が keychain にない" >&2
+    echo "NG: Developer ID Application（Team ${TEAM_ID}）の証明書が keychain にない" >&2
     echo "    Xcode → Settings → Accounts → Manage Certificates から取得する" >&2
     exit 1
 fi

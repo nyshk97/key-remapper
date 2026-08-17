@@ -38,4 +38,4 @@ esac
 ditto -c -k --sequesterRsrc --keepParent "$STAPLE_DIR/keyrc.app" "$ZIP"
 /bin/rm -rf "$STAPLE_DIR" 2>/dev/null || true
 
-echo "OK: $ZIP（notarize + staple 済み。$assess）"
+echo "OK: ${ZIP}（notarize + staple 済み。$(echo "$assess" | grep '^source=')）"
