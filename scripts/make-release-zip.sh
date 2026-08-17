@@ -57,6 +57,6 @@ ZIP="dist/keyrc-$VERSION.zip"
 ditto -c -k --sequesterRsrc --keepParent "$APP" "$ZIP"
 
 echo "OK: $ZIP"
-echo "次: xcrun notarytool submit \"$ZIP\" --keychain-profile <プロファイル名> --wait"
+echo "次: xcrun notarytool submit \"$ZIP\" --keychain-profile nyshk97-notary --wait"
 echo "    → Accepted 後: ditto -x -k \"$ZIP\" /tmp/staple && xcrun stapler staple /tmp/staple/keyrc.app"
 echo "      再zip: ditto -c -k --sequesterRsrc --keepParent /tmp/staple/keyrc.app \"$ZIP\""
