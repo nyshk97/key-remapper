@@ -47,6 +47,14 @@ if git rev-parse -q --verify "refs/tags/$TAG" > /dev/null; then
     echo "NG: タグ $TAG が既にある（project.yml の MARKETING_VERSION を bump する）"; exit 1
 fi
 
+# gh は「repo が無い」ときも Release 照会と同じ "release not found" を返すため、先に repo の
+# 到達を確認しておく。これで後段の "release not found" が「本当に Release が無い」に確定する。
+if ! repo_out=$(gh repo view "$GITHUB_REPO" --json name 2>&1); then
+    echo "NG: $GITHUB_REPO を参照できない（通信エラー / 権限 / repo 名の誤り）:"
+    echo "    $repo_out"
+    exit 1
+fi
+
 # gh の失敗は「Release が無い」と「通信エラー」を区別する。握りつぶすと既存 Release を
 # 見逃して進み、公開済みバージョンを上書きしようとする。
 if release_out=$(gh release view "$TAG" --repo "$GITHUB_REPO" 2>&1); then
