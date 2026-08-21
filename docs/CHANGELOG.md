@@ -44,6 +44,9 @@ keyrc の更新履歴。形式は [Keep a Changelog](https://keepachangelog.com/
 
 ## [Unreleased]
 
+### ✨ Added
+- アップデートの確認ダイアログに、そのバージョンの変更内容を表示
+
 ## [0.1.1] - 2026-08-16
 
 ### ✨ Added
