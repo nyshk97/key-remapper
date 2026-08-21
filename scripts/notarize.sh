@@ -8,22 +8,22 @@
 #     --key ~/Library/CloudStorage/Dropbox/secrets/AuthKey_M4FG2B8JFX.p8 \
 #     --key-id M4FG2B8JFX --issuer 024fc873-10f9-49a4-8d6f-20fb5c7bd522
 #
-# 注: 環境によっては notarytool が Claude Code の Bash から keychain に届かない。
-#     このスクリプトは自分の Terminal で実行するのが確実。
+# 注: 資格情報は data-protection keychain にあり、画面ロック中だけ「プロファイルが無い」
+#     ように見える（Claude Code の Bash からでも解除中なら通る。preflight.sh でロック中は止める）。
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 PROFILE="${NOTARY_PROFILE:-nyshk97-notary}"
 APP="build/Build/Products/Release/keyrc.app"
-[ -d "$APP" ] || { echo "NG: $APP がない（先に mise run release-zip）"; exit 1; }
+[ -d "$APP" ] || { echo "NG: $APP がない（先に mise run release:zip）"; exit 1; }
 VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP/Contents/Info.plist")
 ZIP="dist/keyrc-$VERSION.zip"
-[ -f "$ZIP" ] || { echo "NG: $ZIP がない（先に mise run release-zip）"; exit 1; }
+[ -f "$ZIP" ] || { echo "NG: $ZIP がない（先に mise run release:zip）"; exit 1; }
 
 xcrun notarytool submit "$ZIP" --keychain-profile "$PROFILE" --wait
 
 # staple は .app に対して行う。zip の中身を展開して貼り、貼った方を再 zip する
-# （publish-release.sh は zip を展開して staple 済みかを検証するため、zip 側に入れる必要がある）。
+# （release.sh は zip をそのまま配布するため、zip 側に入れる必要がある）。
 STAPLE_DIR=$(mktemp -d)
 ditto -x -k "$ZIP" "$STAPLE_DIR"
 xcrun stapler staple "$STAPLE_DIR/keyrc.app"

@@ -27,7 +27,7 @@
 	<key>SUEnableAutomaticChecks</key>
 	<true/>
 	<key>SUFeedURL</key>
-	<string>https://github.com/nyshk97/keyrc/releases/latest/download/appcast.xml</string>
+	<string>$(KEYRC_SU_FEED_URL)</string>
 	<key>SUPublicEDKey</key>
 	<string>VnvTM72yjjc1FY/nzLI5uT/3mSxkOdG7k4dJqAPgZo8=</string>
 </dict>

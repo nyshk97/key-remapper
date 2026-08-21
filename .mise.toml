@@ -41,31 +41,21 @@ run = "tail -f /tmp/keyrc.log"
 
 # --- リリース -------------------------------------------------------------
 # 通常は release 1本で通す。個別タスクは途中で失敗したときの再開用に残してある。
-# notarize は keychain の資格情報を読むため、自分の Terminal で実行する
-# （Claude Code の Bash からは keychain に届かない環境がある）。
-
+# Claude Code のセッションから叩いてよい（画面ロック中だけ preflight で止まる）。
+# 叩く前に docs/CHANGELOG.md の [Unreleased] を埋めて commit しておく（空なら止まる）。
 [tasks.release]
-description = "リリースする（preflight → zip → notarize → GitHub Release 公開）。自分の Terminal で実行する"
-run = """
-set -e
-bash scripts/preflight.sh
-bash scripts/make-release-zip.sh
-bash scripts/notarize.sh
-bash scripts/publish-release.sh
-"""
+description = "リリースする（bump → CHANGELOG 切り出し → zip → notarize → GitHub Release + appcast → cask 更新）"
+usage = 'arg "<bump>" help="patch|minor|major|x.y.z" default="patch"'
+run = 'bash scripts/release.sh "$usage_bump"'
 
 [tasks."release:preflight"]
-description = "リリース前チェックだけ実行する（main・clean worktree・push 済み・タグと Release の未作成）"
+description = "リリース前チェックだけ実行する（main・clean worktree・push 済み・タグと Release の未作成・CHANGELOG・資格情報）"
 run = "bash scripts/preflight.sh"
 
-[tasks.release-zip]
+[tasks."release:zip"]
 description = "配布適格に再署名して dist/keyrc-<version>.zip を作る（notarize 前段）"
 run = "bash scripts/make-release-zip.sh"
 
 [tasks."release:notarize"]
-description = "dist の zip を notarize + staple して差し替える。自分の Terminal で実行する"
+description = "dist の zip を notarize + staple して差し替える"
 run = "bash scripts/notarize.sh"
-
-[tasks.publish-release]
-description = "notarize済みzipをGitHub Releaseとして公開する（appcast.xml生成込み）。自分の Terminal で実行する"
-run = "bash scripts/publish-release.sh"

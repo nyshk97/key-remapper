@@ -463,20 +463,22 @@ M0〜M2 完了、M3 はアプリ実装まで完了・配布まわりが未了、
 - [x] Homebrew Cask（2026-08-16: 既存の `nyshk97/homebrew-tap` に `Casks/keyrc.rb` を追加。auto_updates true。`depends_on macos:` の文字列比較書式は deprecated → symbol 形式）
 - [x] Brewfile に cask を追記（2026-08-16: `cask 'nyshk97/tap/keyrc'`。手動配置していた /Applications/keyrc.app は削除し cask 管理に移行）
 
-### 次回以降のリリース手順（v0.1.1〜）
+### 次回以降のリリース手順（v0.1.2〜）
 
-1. `project.yml` の `MARKETING_VERSION` を bump（CFBundleVersion は連動）してコミット → push
-   （preflight が「clean worktree」「HEAD == origin/main」を要求する）
-2. 自分の Terminal で `mise run release`。preflight → 配布適格に再署名して zip → notarize + staple →
-   GitHub Release 公開（appcast.xml 生成込み）まで通す。notarize は keychain の資格情報を読むため
-   Claude Code の Bash からは届かないことがある。IPv6 が腐っている回線では先に `sudo networksetup -setv6off Wi-Fi`
-3. homebrew-tap の `Casks/keyrc.rb` の version / sha256 を更新して push（sha256 は `shasum -a 256 dist/keyrc-<version>.zip`）
-4. 既存インストール環境は Sparkle が自動更新するので brew 側の操作は不要
+1. `docs/CHANGELOG.md` の `[Unreleased]` を埋めて commit → push（書き方は CHANGELOG 冒頭。
+   `git log <前回タグ>..HEAD` を読んで Claude Code のセッションが書く。空だと preflight で止まる）
+2. `mise run release [patch|minor|major|x.y.z]`（既定 patch）。Claude Code のセッションから叩いてよい。
+   preflight → `project.yml` の bump と CHANGELOG の切り出しを commit → 配布適格に再署名して zip →
+   notarize + staple → appcast.xml（EdDSA 署名・CHANGELOG を `<description>` に）→ push → GitHub Release →
+   homebrew-tap の `Casks/keyrc.rb` 更新まで通す。push 前に失敗したら bump commit は trap で巻き戻る。
+   IPv6 が腐っている回線では先に `sudo networksetup -setv6off Wi-Fi`
+3. 既存インストール環境は Sparkle が自動更新する（更新ダイアログに CHANGELOG の内容が出る）
 
-途中で失敗したときは個別タスクで再開できる: `release:preflight` / `release-zip` /
-`release:notarize` / `publish-release`。notarize の資格情報は keychain プロファイル
-`nyshk97-notary`（自作 Mac アプリ共通。中身は App Store Connect の API キーで、`.p8` は
-Dropbox の `secrets/`）。`NOTARY_PROFILE` 環境変数で上書きできる。
+途中で失敗したときは個別タスクで再開できる: `release:preflight` / `release:zip` / `release:notarize`
+（公開だけの再実行は無い。bump commit が巻き戻るので `mise run release` を叩き直す）。notarize の
+資格情報は keychain プロファイル `nyshk97-notary`（自作 Mac アプリ共通。中身は App Store Connect の
+API キーで、`.p8` は Dropbox の `secrets/`）。画面ロック中は読めないので preflight で止まる。
+`NOTARY_PROFILE` 環境変数で上書きできる。
 
 ### M4 残り（ドッグフーディング、〜2026-08-30 目安）
 

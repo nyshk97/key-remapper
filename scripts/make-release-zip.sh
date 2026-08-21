@@ -67,5 +67,5 @@ ZIP="dist/keyrc-$VERSION.zip"
 ditto -c -k --sequesterRsrc --keepParent "$APP" "$ZIP"
 
 echo "OK: $ZIP"
-echo "次: mise run release:notarize（submit → staple → 再 zip。自分の Terminal で実行する）"
+echo "次: mise run release:notarize（submit → staple → 再 zip）"
 echo "    その後: mise run publish-release"

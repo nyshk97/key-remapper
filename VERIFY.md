@@ -63,3 +63,14 @@ hidutil property --set '{"UserKeyMapping":[]}'    # Layer 1 クリア
 keyrc が不調な場合の応急フォールバック:
 - ⌘単押し: cmd-eikana は 2026-08-16 に削除済み。必要なら dominion525/cmd-eikana の配布バイナリ（署名・公証済み）を再導入する
 - 記号スワップ: `./scripts/keyrc-apply` を手動実行（アプリなしでも hidutil は効く）
+
+## リリース
+
+手順は `keyremap-spec.md` の「次回以降のリリース手順」。確認ポイント:
+
+- `python3 scripts/changelog.py check` が `[Unreleased]` 空なら exit 1（preflight のゲート）
+- `RELEASE_VERSION=9.9.9 bash scripts/preflight.sh` で、ビルドせずに事前チェックだけ通せる（CHANGELOG が空のときはそこで止まる）
+- dev 版の plist に feed が入っていないこと（入っていると dev が常用版のダウンロードで置き換わる）:
+  `/usr/libexec/PlistBuddy -c 'Print :SUFeedURL' 'build/Build/Products/Debug/keyrc Dev.app/Contents/Info.plist'` → 空文字
+- リリース後: `gh release view v<ver> --repo nyshk97/keyrc --json body` が CHANGELOG の該当セクション、
+  `curl -sL https://github.com/nyshk97/keyrc/releases/latest/download/appcast.xml` の `<description>` に同じ内容

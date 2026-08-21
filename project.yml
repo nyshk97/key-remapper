@@ -40,6 +40,8 @@ targets:
         Release:
           PRODUCT_BUNDLE_IDENTIFIER: io.github.nyshk97.keyrc
           PRODUCT_NAME: keyrc
+          # feed は Release だけ。dev 版に入れると更新チェックで常用版のビルドに置き換わる
+          KEYRC_SU_FEED_URL: https://github.com/nyshk97/keyrc/releases/latest/download/appcast.xml
           ENABLE_HARDENED_RUNTIME: YES
           OTHER_CODE_SIGN_FLAGS: --timestamp
           # 素の xcodebuild build が get-task-allow を注入して notarize が Invalid になるのを防ぐ
@@ -53,8 +55,9 @@ targets:
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSUIElement: true
         NSPrincipalClass: NSApplication
-        # Sparkle（アップデータの起動自体は #if !DEBUG でガードしているため dev では無効）
-        SUFeedURL: https://github.com/nyshk97/keyrc/releases/latest/download/appcast.xml
+        # Sparkle。アップデータの起動は #if !DEBUG でガードし、feed URL も Release 構成にだけ
+        # 入れる二重防御（Debug では KEYRC_SU_FEED_URL が未定義で空文字になる）
+        SUFeedURL: $(KEYRC_SU_FEED_URL)
         SUEnableAutomaticChecks: true
         # ログイン keychain の "Private key for signing Sparkle updates"（デフォルトアカウント ed25519）と対
         SUPublicEDKey: VnvTM72yjjc1FY/nzLI5uT/3mSxkOdG7k4dJqAPgZo8=
